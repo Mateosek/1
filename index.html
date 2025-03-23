@@ -3,104 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kalkulator BMI i Kalorii</title>
+    <title>Przypominacz o piciu wody</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Kalkulator BMI i Kalorii</h1>
-        
-        <div class="form-container">
-            <h2>Dane osobowe</h2>
-            <div class="form-group">
-                <label for="weight">Waga (kg):</label>
-                <input type="number" id="weight" min="30" max="300" step="0.1" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="height">Wzrost (cm):</label>
-                <input type="number" id="height" min="100" max="250" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="age">Wiek:</label>
-                <input type="number" id="age" min="15" max="120" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="gender">Płeć:</label>
-                <select id="gender" required>
-                    <option value="male">Mężczyzna</option>
-                    <option value="female">Kobieta</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label for="activity">Poziom aktywności:</label>
-                <select id="activity" required>
-                    <option value="1.2">Siedzący tryb życia</option>
-                    <option value="1.375">Lekka aktywność (1-3 dni w tygodniu)</option>
-                    <option value="1.55">Umiarkowana aktywność (3-5 dni w tygodniu)</option>
-                    <option value="1.725">Wysoka aktywność (6-7 dni w tygodniu)</option>
-                    <option value="1.9">Bardzo wysoka aktywność</option>
-                </select>
-            </div>
-            
-            <h2>Dzienne spożycie kalorii</h2>
-            <div class="form-group">
-                <label for="calories">Spożyte kalorie:</label>
-                <input type="number" id="calories" min="0" max="10000" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="date">Data:</label>
-                <input type="date" id="date" required>
-            </div>
-            
-            <button id="calculate-btn">Oblicz i zapisz</button>
-        </div>
-        
-        <div class="results-container">
-            <div class="current-results">
-                <h2>Aktualne wyniki</h2>
-                <div id="bmi-result" class="result-box">
-                    <h3>Twoje BMI</h3>
-                    <div id="bmi-value">-</div>
-                    <div id="bmi-category">-</div>
+    <div class="app-container">
+        <header>
+            <h1>Przypominacz o piciu wody</h1>
+        </header>
+
+        <main>
+            <section id="setup-section" class="section">
+                <h2>Ustawienia</h2>
+                <div class="form-group">
+                    <label for="daily-goal">Dzienny cel (ml):</label>
+                    <input type="number" id="daily-goal" min="500" max="5000" step="100" value="2000">
+                </div>
+                <div class="form-group">
+                    <label for="reminder-interval">Częstotliwość przypomnień (minuty):</label>
+                    <input type="number" id="reminder-interval" min="15" max="180" step="15" value="60">
+                </div>
+                <div class="form-group">
+                    <label for="wakeup-time">Godzina pobudki:</label>
+                    <input type="time" id="wakeup-time" value="07:00">
+                </div>
+                <div class="form-group">
+                    <label for="sleep-time">Godzina snu:</label>
+                    <input type="time" id="sleep-time" value="22:00">
+                </div>
+                <button id="save-settings" class="btn primary">Zapisz ustawienia</button>
+            </section>
+
+            <section id="dashboard-section" class="section">
+                <h2>Dzisiejszy postęp</h2>
+                <div class="water-progress">
+                    <div class="water-container">
+                        <div class="water-level" id="water-level"></div>
+                    </div>
+                    <div class="progress-info">
+                        <span id="current-amount">0</span> / <span id="goal-amount">2000</span> ml
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button id="add-water" class="btn primary">
+                        <i class="fas fa-plus"></i> Dodaj wodę
+                    </button>
+                </div>
+                <div id="water-options" class="water-options hidden">
+                    <button class="water-option" data-amount="100">100 ml</button>
+                    <button class="water-option" data-amount="200">200 ml</button>
+                    <button class="water-option" data-amount="250">250 ml</button>
+                    <button class="water-option" data-amount="330">330 ml</button>
+                    <button class="water-option" data-amount="500">500 ml</button>
+                    <div class="custom-amount">
+                        <input type="number" id="custom-amount" placeholder="Inna ilość" min="10" max="1000">
+                        <button id="add-custom">Dodaj</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="history-section" class="section">
+                <h2>Historia</h2>
+                <div id="today-entries" class="entries-list">
+                    <!-- Entries will be added dynamically -->
+                </div>
+            </section>
+
+            <section id="custom-reminder-section" class="section">
+                <h2>Niestandardowe przypomnienia</h2>
+                <p>Ustaw własne godziny przypomnień o piciu wody:</p>
+                
+                <div id="reminders-list" class="reminders-list">
+                    <!-- Reminders will be added dynamically -->
                 </div>
                 
-                <div id="calorie-result" class="result-box">
-                    <h3>Zapotrzebowanie kaloryczne</h3>
-                    <div id="calorie-value">-</div>
-                    <div id="calorie-balance">-</div>
+                <button id="add-reminder-btn" class="btn primary">
+                    <i class="fas fa-plus"></i> Dodaj przypomnienie
+                </button>
+                
+                <div id="reminder-form" class="reminder-form hidden">
+                    <div class="form-group">
+                        <label for="reminder-time">Godzina przypomnienia:</label>
+                        <input type="time" id="reminder-time">
+                    </div>
+                    <div class="form-actions">
+                        <button id="save-reminder-btn" class="btn primary">Zapisz</button>
+                        <button id="cancel-reminder-btn" class="btn">Anuluj</button>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="history-container">
-                <h2>Historia BMI i kalorii</h2>
-                <div id="chart-container">
-                    <canvas id="bmi-chart"></canvas>
-                </div>
-                <div id="history-list">
-                    <table id="history-table">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>BMI</th>
-                                <th>Kalorie</th>
-                                <th>Bilans</th>
-                            </tr>
-                        </thead>
-                        <tbody id="history-data">
-                            <!-- Dane historyczne będą dodawane przez JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            </section>
+        </main>
+
+        <nav>
+            <button class="nav-btn" data-section="dashboard-section">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Pulpit</span>
+            </button>
+            <button class="nav-btn" data-section="setup-section">
+                <i class="fas fa-cog"></i>
+                <span>Ustawienia</span>
+            </button>
+            <button class="nav-btn" data-section="history-section">
+                <i class="fas fa-history"></i>
+                <span>Historia</span>
+            </button>
+            <button class="nav-btn" data-section="custom-reminder-section">
+                <i class="fas fa-bell"></i>
+                <span>Przypomnienia</span>
+            </button>
+        </nav>
+    </div>
+
+    <div id="notification" class="notification hidden">
+        <div class="notification-content">
+            <i class="fas fa-tint notification-icon"></i>
+            <p>Czas na szklankę wody!</p>
+            <button id="dismiss-notification">OK</button>
         </div>
     </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script src="app.js"></script>
+    <script src="custom-reminders.js"></script>
 </body>
 </html>

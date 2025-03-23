@@ -1,264 +1,387 @@
-document.addEventListener('DOMContentLoaded', function() {
+// Main App JavaScript
+document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
-    const weightInput = document.getElementById('weight');
-    const heightInput = document.getElementById('height');
-    const ageInput = document.getElementById('age');
-    const genderSelect = document.getElementById('gender');
-    const activitySelect = document.getElementById('activity');
-    const caloriesInput = document.getElementById('calories');
-    const dateInput = document.getElementById('date');
-    const calculateBtn = document.getElementById('calculate-btn');
+    const sections = document.querySelectorAll('.section');
+    const navButtons = document.querySelectorAll('.nav-btn');
+    const waterLevel = document.getElementById('water-level');
+    const currentAmount = document.getElementById('current-amount');
+    const goalAmount = document.getElementById('goal-amount');
+    const addWaterBtn = document.getElementById('add-water');
+    const waterOptions = document.getElementById('water-options');
+    const waterOptionBtns = document.querySelectorAll('.water-option');
+    const customAmountInput = document.getElementById('custom-amount');
+    const addCustomBtn = document.getElementById('add-custom');
+    const todayEntries = document.getElementById('today-entries');
+    const saveSettingsBtn = document.getElementById('save-settings');
+    const dailyGoalInput = document.getElementById('daily-goal');
+    const reminderIntervalInput = document.getElementById('reminder-interval');
+    const wakeupTimeInput = document.getElementById('wakeup-time');
+    const sleepTimeInput = document.getElementById('sleep-time');
+    const notification = document.getElementById('notification');
+    const dismissNotificationBtn = document.getElementById('dismiss-notification');
     
-    const bmiValue = document.getElementById('bmi-value');
-    const bmiCategory = document.getElementById('bmi-category');
-    const calorieValue = document.getElementById('calorie-value');
-    const calorieBalance = document.getElementById('calorie-balance');
+    // App State
+    let state = {
+        currentAmount: 0,
+        dailyGoal: 2000,
+        reminderInterval: 60,
+        wakeupTime: '07:00',
+        sleepTime: '22:00',
+        entries: [],
+        lastReminderTime: null
+    };
     
-    const historyData = document.getElementById('history-data');
-    const bmiChartCanvas = document.getElementById('bmi-chart');
+    // Timer for reminders
+    let reminderTimer = null;
     
-    // Set default date to today
-    const today = new Date();
-    const formattedDate = today.toISOString().split('T')[0];
-    dateInput.value = formattedDate;
-    
-    // Chart initialization
-    let bmiChart;
-    initChart();
-    
-    // Load history from localStorage
-    let history = loadHistory();
-    updateHistoryTable();
-    updateChart();
-    
-    // Event listeners
-    calculateBtn.addEventListener('click', calculateAndSave);
-    
-    // Functions
-    function calculateAndSave() {
-        // Validate inputs
-        if (!validateInputs()) {
-            return;
-        }
+    // Initialize app
+    function init() {
+        loadState();
+        updateUI();
+        setupEventListeners();
+        showSection('dashboard-section');
+        scheduleReminders();
+        requestNotificationPermission();
         
-        // Get input values
-        const weight = parseFloat(weightInput.value);
-        const height = parseFloat(heightInput.value);
-        const age = parseInt(ageInput.value);
-        const gender = genderSelect.value;
-        const activity = parseFloat(activitySelect.value);
-        const calories = parseInt(caloriesInput.value);
-        const date = dateInput.value;
-        
-        // Calculate BMI
-        const bmi = calculateBMI(weight, height);
-        const category = getBMICategory(bmi);
-        
-        // Calculate BMR and daily calorie needs
-        const bmr = calculateBMR(weight, height, age, gender);
-        const dailyCalories = calculateDailyCalories(bmr, activity);
-        
-        // Calculate calorie balance
-        const balance = calories - dailyCalories;
-        const balanceStatus = getCalorieBalanceStatus(balance);
-        
-        // Update UI
-        bmiValue.textContent = bmi.toFixed(2);
-        bmiCategory.textContent = category.text;
-        bmiCategory.className = category.class;
-        
-        calorieValue.textContent = dailyCalories.toFixed(0) + ' kcal';
-        calorieBalance.textContent = balanceStatus.text;
-        calorieBalance.className = balanceStatus.class;
-        
-        // Save to history
-        const entry = {
-            date: date,
-            weight: weight,
-            height: height,
-            bmi: bmi,
-            category: category.text,
-            bmr: bmr,
-            dailyCalories: dailyCalories,
-            consumedCalories: calories,
-            balance: balance,
-            balanceStatus: balanceStatus.text
-        };
-        
-        history.push(entry);
-        saveHistory(history);
-        
-        // Update history table and chart
-        updateHistoryTable();
-        updateChart();
-    }
-    
-    function validateInputs() {
-        // Check if all required fields are filled
-        if (!weightInput.value || !heightInput.value || !ageInput.value || 
-            !caloriesInput.value || !dateInput.value) {
-            alert('Proszę wypełnić wszystkie pola!');
-            return false;
-        }
-        
-        return true;
-    }
-    
-    function calculateBMI(weight, height) {
-        // BMI = weight(kg) / (height(m))²
-        const heightInMeters = height / 100;
-        return weight / (heightInMeters * heightInMeters);
-    }
-    
-    function getBMICategory(bmi) {
-        if (bmi < 18.5) {
-            return { text: 'Niedowaga', class: 'underweight' };
-        } else if (bmi < 25) {
-            return { text: 'Prawidłowa waga', class: 'normal' };
-        } else if (bmi < 30) {
-            return { text: 'Nadwaga', class: 'overweight' };
-        } else {
-            return { text: 'Otyłość', class: 'obese' };
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./service-worker.js')
+                .then(registration => {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                })
+                .catch(err => {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
         }
     }
     
-    function calculateBMR(weight, height, age, gender) {
-        // Harris-Benedict Equation
-        if (gender === 'male') {
-            return 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
-        } else {
-            return 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
+    // Load state from localStorage
+    function loadState() {
+        const savedState = localStorage.getItem('waterReminderState');
+        if (savedState) {
+            state = JSON.parse(savedState);
+        }
+        
+        // Update input values
+        dailyGoalInput.value = state.dailyGoal;
+        reminderIntervalInput.value = state.reminderInterval;
+        wakeupTimeInput.value = state.wakeupTime;
+        sleepTimeInput.value = state.sleepTime;
+        goalAmount.textContent = state.dailyGoal;
+        
+        // Check if it's a new day and reset if needed
+        checkNewDay();
+    }
+    
+    // Save state to localStorage
+    function saveState() {
+        localStorage.setItem('waterReminderState', JSON.stringify(state));
+    }
+    
+    // Check if it's a new day and reset tracking if needed
+    function checkNewDay() {
+        if (state.entries.length > 0) {
+            const lastEntryDate = new Date(state.entries[0].timestamp).toLocaleDateString();
+            const today = new Date().toLocaleDateString();
+            
+            if (lastEntryDate !== today) {
+                // It's a new day, reset tracking
+                state.currentAmount = 0;
+                state.entries = [];
+                saveState();
+            }
         }
     }
     
-    function calculateDailyCalories(bmr, activityLevel) {
-        return bmr * activityLevel;
-    }
-    
-    function getCalorieBalanceStatus(balance) {
-        if (balance < -200) {
-            return { text: 'Deficyt kaloryczny', class: 'deficit' };
-        } else if (balance > 200) {
-            return { text: 'Nadwyżka kaloryczna', class: 'surplus' };
-        } else {
-            return { text: 'Bilans zrównoważony', class: 'maintenance' };
-        }
-    }
-    
-    function loadHistory() {
-        const savedHistory = localStorage.getItem('bmiCalorieHistory');
-        return savedHistory ? JSON.parse(savedHistory) : [];
-    }
-    
-    function saveHistory(history) {
-        localStorage.setItem('bmiCalorieHistory', JSON.stringify(history));
-    }
-    
-    function updateHistoryTable() {
-        // Clear existing rows
-        historyData.innerHTML = '';
+    // Update UI elements
+    function updateUI() {
+        // Update water level visualization
+        const percentage = Math.min((state.currentAmount / state.dailyGoal) * 100, 100);
+        waterLevel.style.height = `${percentage}%`;
         
-        // Sort history by date (newest first)
-        const sortedHistory = [...history].sort((a, b) => new Date(b.date) - new Date(a.date));
+        // Update text displays
+        currentAmount.textContent = state.currentAmount;
+        goalAmount.textContent = state.dailyGoal;
         
-        // Add rows for each entry
-        sortedHistory.forEach(entry => {
-            const row = document.createElement('tr');
-            
-            const dateCell = document.createElement('td');
-            dateCell.textContent = formatDate(entry.date);
-            
-            const bmiCell = document.createElement('td');
-            bmiCell.textContent = entry.bmi.toFixed(2);
-            bmiCell.classList.add(getBMICategory(entry.bmi).class);
-            
-            const calorieCell = document.createElement('td');
-            calorieCell.textContent = `${entry.consumedCalories} / ${entry.dailyCalories.toFixed(0)}`;
-            
-            const balanceCell = document.createElement('td');
-            balanceCell.textContent = entry.balanceStatus;
-            balanceCell.classList.add(getCalorieBalanceStatus(entry.balance).class);
-            
-            row.appendChild(dateCell);
-            row.appendChild(bmiCell);
-            row.appendChild(calorieCell);
-            row.appendChild(balanceCell);
-            
-            historyData.appendChild(row);
+        // Render entries
+        renderEntries();
+    }
+    
+    // Setup event listeners
+    function setupEventListeners() {
+        // Navigation
+        navButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const sectionId = btn.dataset.section;
+                showSection(sectionId);
+                setActiveNavButton(btn);
+            });
+        });
+        
+        // Add water button
+        addWaterBtn.addEventListener('click', () => {
+            waterOptions.classList.toggle('hidden');
+        });
+        
+        // Water option buttons
+        waterOptionBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const amount = parseInt(btn.dataset.amount);
+                addWater(amount);
+                waterOptions.classList.add('hidden');
+            });
+        });
+        
+        // Add custom amount
+        addCustomBtn.addEventListener('click', () => {
+            const amount = parseInt(customAmountInput.value);
+            if (amount && amount > 0) {
+                addWater(amount);
+                customAmountInput.value = '';
+                waterOptions.classList.add('hidden');
+            }
+        });
+        
+        // Save settings
+        saveSettingsBtn.addEventListener('click', saveSettings);
+        
+        // Dismiss notification
+        dismissNotificationBtn.addEventListener('click', () => {
+            notification.classList.add('hidden');
         });
     }
     
-    function formatDate(dateString) {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('pl-PL');
-    }
-    
-    function initChart() {
-        const ctx = bmiChartCanvas.getContext('2d');
-        bmiChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'BMI',
-                    data: [],
-                    borderColor: '#3498db',
-                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: false,
-                        min: 15,
-                        max: 35,
-                        ticks: {
-                            stepSize: 5
-                        }
-                    }
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const index = context.dataIndex;
-                                const entry = history[index];
-                                if (entry) {
-                                    return [
-                                        `BMI: ${entry.bmi.toFixed(2)} (${entry.category})`,
-                                        `Waga: ${entry.weight} kg`,
-                                        `Wzrost: ${entry.height} cm`
-                                    ];
-                                }
-                                return `BMI: ${context.raw}`;
-                            }
-                        }
-                    }
-                }
+    // Show active section and hide others
+    function showSection(sectionId) {
+        sections.forEach(section => {
+            if (section.id === sectionId) {
+                section.classList.add('active');
+            } else {
+                section.classList.remove('active');
             }
         });
     }
     
-    function updateChart() {
-        if (history.length === 0) return;
-        
-        // Sort history by date (oldest first for chart)
-        const sortedHistory = [...history].sort((a, b) => new Date(a.date) - new Date(b.date));
-        
-        // Extract dates and BMI values
-        const labels = sortedHistory.map(entry => formatDate(entry.date));
-        const data = sortedHistory.map(entry => entry.bmi);
-        
-        // Update chart data
-        bmiChart.data.labels = labels;
-        bmiChart.data.datasets[0].data = data;
-        
-        // Update chart
-        bmiChart.update();
+    // Set active navigation button
+    function setActiveNavButton(activeBtn) {
+        navButtons.forEach(btn => {
+            if (btn === activeBtn) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
     }
+    
+    // Add water to tracking
+    function addWater(amount) {
+        state.currentAmount += amount;
+        
+        // Add entry
+        const entry = {
+            timestamp: new Date().getTime(),
+            amount: amount
+        };
+        
+        state.entries.unshift(entry);
+        saveState();
+        updateUI();
+    }
+    
+    // Render water entries
+    function renderEntries() {
+        todayEntries.innerHTML = '';
+        
+        if (state.entries.length === 0) {
+            todayEntries.innerHTML = '<p class="no-entries">Brak wpisów na dziś</p>';
+            return;
+        }
+        
+        state.entries.forEach(entry => {
+            const entryEl = document.createElement('div');
+            entryEl.className = 'entry';
+            
+            const date = new Date(entry.timestamp);
+            const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            entryEl.innerHTML = `
+                <span class="entry-time">${timeStr}</span>
+                <span class="entry-amount">${entry.amount} ml</span>
+            `;
+            
+            todayEntries.appendChild(entryEl);
+        });
+    }
+    
+    // Save settings
+    function saveSettings() {
+        state.dailyGoal = parseInt(dailyGoalInput.value);
+        state.reminderInterval = parseInt(reminderIntervalInput.value);
+        state.wakeupTime = wakeupTimeInput.value;
+        state.sleepTime = sleepTimeInput.value;
+        
+        saveState();
+        updateUI();
+        scheduleReminders();
+        
+        // Show confirmation
+        alert('Ustawienia zostały zapisane!');
+    }
+    
+    // Schedule water reminders
+    function scheduleReminders() {
+        // Clear existing timer
+        if (reminderTimer) {
+            clearInterval(reminderTimer);
+        }
+        
+        // Set new timer based on interval
+        const intervalMs = state.reminderInterval * 60 * 1000;
+        reminderTimer = setInterval(() => {
+            if (isInActiveHours()) {
+                showReminder();
+            }
+        }, intervalMs);
+        
+        // Also schedule custom reminders if available
+        if (window.customReminders && window.customReminders.scheduleCustomReminders) {
+            window.customReminders.scheduleCustomReminders();
+        }
+    }
+    
+    // Check if current time is within active hours
+    function isInActiveHours() {
+        const now = new Date();
+        const currentTime = now.getHours() * 60 + now.getMinutes();
+        
+        const [wakeHours, wakeMinutes] = state.wakeupTime.split(':').map(Number);
+        const [sleepHours, sleepMinutes] = state.sleepTime.split(':').map(Number);
+        
+        const wakeTime = wakeHours * 60 + wakeMinutes;
+        const sleepTime = sleepHours * 60 + sleepMinutes;
+        
+        return currentTime >= wakeTime && currentTime <= sleepTime;
+    }
+    
+    // Show reminder notification
+    function showReminder() {
+        // Show in-app notification if app is visible
+        notification.classList.remove('hidden');
+        
+        // Show system notification
+        if ("Notification" in window && Notification.permission === "granted") {
+            // If we have service worker and push is supported, use it for notifications
+            if ('serviceWorker' in navigator && 'PushManager' in window) {
+                navigator.serviceWorker.ready.then(registration => {
+                    // Create notification data
+                    const notificationData = {
+                        title: "Przypominacz o piciu wody",
+                        body: "Czas na szklankę wody!",
+                        icon: "https://cdn-icons-png.flaticon.com/512/824/824239.png",
+                        timestamp: Date.now()
+                    };
+                    
+                    // Try to use the push API if possible
+                    try {
+                        registration.showNotification(notificationData.title, {
+                            body: notificationData.body,
+                            icon: notificationData.icon,
+                            badge: "https://cdn-icons-png.flaticon.com/512/824/824239.png",
+                            tag: "water-reminder",
+                            vibrate: [100, 50, 100],
+                            data: {
+                                dateOfArrival: Date.now(),
+                                primaryKey: 1
+                            },
+                            actions: [
+                                { action: 'close', title: 'Zamknij' },
+                                { action: 'check', title: 'Sprawdź' }
+                            ]
+                        });
+                    } catch (error) {
+                        // Fallback to regular Notification API
+                        const notify = new Notification(notificationData.title, {
+                            body: notificationData.body,
+                            icon: notificationData.icon
+                        });
+                    }
+                });
+            } else {
+                // Fallback for browsers without service worker support
+                const notify = new Notification("Przypominacz o piciu wody", {
+                    body: "Czas na szklankę wody!",
+                    icon: "https://cdn-icons-png.flaticon.com/512/824/824239.png"
+                });
+            }
+        }
+    }
+    
+    // Request notification permission
+    function requestNotificationPermission() {
+        if ("Notification" in window) {
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    console.log("Notification permission granted");
+                    // Subscribe to push notifications if permission is granted
+                    subscribeToPushNotifications();
+                } else {
+                    console.log("Notification permission denied");
+                }
+            });
+        }
+    }
+    
+    // Subscribe to push notifications
+    function subscribeToPushNotifications() {
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+            navigator.serviceWorker.ready
+                .then(registration => {
+                    // Check if we already have a subscription
+                    return registration.pushManager.getSubscription()
+                        .then(subscription => {
+                            if (subscription) {
+                                return subscription;
+                            }
+                            
+                            // Create a new subscription
+                            return registration.pushManager.subscribe({
+                                userVisibleOnly: true,
+                                applicationServerKey: urlBase64ToUint8Array(
+                                    'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U'
+                                )
+                            });
+                        });
+                })
+                .then(subscription => {
+                    console.log('User is subscribed to push notifications:', subscription);
+                    // Here you would typically send the subscription to your server
+                    // saveSubscription(subscription);
+                })
+                .catch(error => {
+                    console.error('Failed to subscribe to push notifications:', error);
+                });
+        }
+    }
+    
+    // Convert base64 to Uint8Array for applicationServerKey
+    function urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding)
+            .replace(/\-/g, '+')
+            .replace(/_/g, '/');
+            
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+    }
+    
+    // Initialize app
+    init();
+    
+    // Expose functions to global scope for use in other modules
+    window.isInActiveHours = isInActiveHours;
 });

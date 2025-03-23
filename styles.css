@@ -1,179 +1,326 @@
+/* Base styles */
 * {
-    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-sizing: border-box;
 }
 
 body {
-    background-color: #f5f5f5;
+    font-family: 'Roboto', sans-serif;
+    background-color: #f5f7fa;
     color: #333;
     line-height: 1.6;
 }
 
-.container {
+.app-container {
     max-width: 100%;
-    padding: 15px;
-    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
-h1 {
+header {
+    background-color: #4a90e2;
+    color: white;
+    padding: 1rem;
     text-align: center;
-    margin-bottom: 20px;
-    color: #2c3e50;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+main {
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+/* Section styles */
+.section {
+    background-color: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    display: none; /* Hidden by default */
+}
+
+.section.active {
+    display: block;
 }
 
 h2 {
-    color: #3498db;
-    margin-bottom: 15px;
-    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: #4a90e2;
+    font-weight: 500;
 }
 
-h3 {
-    font-size: 1.2rem;
-    margin-bottom: 10px;
-}
-
-.form-container {
-    background-color: white;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-}
-
+/* Form styles */
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 1.2rem;
 }
 
 label {
     display: block;
-    margin-bottom: 5px;
-    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
 }
 
-input, select {
+input[type="number"],
+input[type="time"] {
     width: 100%;
-    padding: 10px;
+    padding: 0.8rem;
     border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 16px;
+    border-radius: 4px;
+    font-size: 1rem;
 }
 
-button {
-    background-color: #3498db;
+/* Button styles */
+.btn {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+.primary {
+    background-color: #4a90e2;
+    color: white;
+}
+
+.primary:hover {
+    background-color: #3a80d2;
+}
+
+/* Water progress styles */
+.water-progress {
+    text-align: center;
+    margin: 2rem 0;
+}
+
+.water-container {
+    width: 150px;
+    height: 200px;
+    margin: 0 auto 1rem;
+    border: 3px solid #4a90e2;
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+    background-color: #f5f7fa;
+}
+
+.water-level {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0%; /* Will be updated by JS */
+    background-color: #4a90e2;
+    transition: height 0.5s ease-out;
+}
+
+.progress-info {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: #4a90e2;
+}
+
+/* Water options */
+.water-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.8rem;
+    margin-top: 1rem;
+}
+
+.water-option {
+    padding: 0.8rem;
+    background-color: #e3f2fd;
+    border: 1px solid #4a90e2;
+    border-radius: 4px;
+    font-weight: 500;
+    color: #4a90e2;
+    cursor: pointer;
+}
+
+.water-option:hover {
+    background-color: #bbdefb;
+}
+
+.custom-amount {
+    grid-column: span 3;
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+#custom-amount {
+    flex: 1;
+}
+
+#add-custom {
+    padding: 0.8rem 1rem;
+    background-color: #4a90e2;
     color: white;
     border: none;
-    padding: 12px 20px;
-    border-radius: 5px;
+    border-radius: 4px;
     cursor: pointer;
-    font-size: 16px;
-    width: 100%;
-    margin-top: 10px;
-    transition: background-color 0.3s;
 }
 
-button:hover {
-    background-color: #2980b9;
+/* History section */
+.entries-list {
+    max-height: 300px;
+    overflow-y: auto;
 }
 
-.results-container {
+.entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem;
+    border-bottom: 1px solid #eee;
+}
+
+.entry-time {
+    color: #777;
+    font-size: 0.9rem;
+}
+
+.entry-amount {
+    font-weight: 500;
+    color: #4a90e2;
+}
+
+/* Navigation */
+nav {
+    display: flex;
+    justify-content: space-around;
     background-color: white;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 0.8rem 0;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
 }
 
-.current-results {
+.nav-btn {
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    margin-bottom: 20px;
+    align-items: center;
+    background: none;
+    border: none;
+    color: #777;
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 0.5rem;
 }
 
-.result-box {
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    padding: 15px;
-    text-align: center;
+.nav-btn i {
+    font-size: 1.2rem;
+    margin-bottom: 0.3rem;
 }
 
-#bmi-value, #calorie-value {
-    font-size: 24px;
-    font-weight: bold;
-    margin: 10px 0;
+.nav-btn.active {
+    color: #4a90e2;
 }
 
-#bmi-category, #calorie-balance {
-    font-size: 16px;
-}
-
-.history-container {
-    margin-top: 30px;
-}
-
-#chart-container {
-    margin-bottom: 20px;
-    height: 300px;
-}
-
-#history-table {
+/* Notification */
+.notification {
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
-    border-collapse: collapse;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
 }
 
-#history-table th, #history-table td {
-    padding: 10px;
+.notification-content {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 8px;
     text-align: center;
-    border-bottom: 1px solid #ddd;
+    max-width: 80%;
 }
 
-#history-table th {
-    background-color: #f2f2f2;
-    font-weight: 600;
+.notification-icon {
+    font-size: 3rem;
+    color: #4a90e2;
+    margin-bottom: 1rem;
 }
 
-/* Klasy dla kategorii BMI */
-.underweight {
-    color: #3498db;
+.notification p {
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
 }
 
-.normal {
-    color: #2ecc71;
+#dismiss-notification {
+    padding: 0.8rem 2rem;
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
 }
 
-.overweight {
-    color: #f39c12;
+/* Custom Reminders */
+.reminders-list {
+    margin-top: 1rem;
 }
 
-.obese {
+.reminder-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem;
+    border-bottom: 1px solid #eee;
+}
+
+.reminder-time {
+    font-weight: 500;
+    color: #4a90e2;
+}
+
+.delete-reminder {
+    background: none;
+    border: none;
     color: #e74c3c;
+    cursor: pointer;
+    padding: 0.5rem;
 }
 
-/* Klasy dla bilansu kalorycznego */
-.deficit {
-    color: #3498db;
+.reminder-form {
+    margin-top: 1rem;
 }
 
-.maintenance {
-    color: #2ecc71;
+.form-actions {
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 1rem;
 }
 
-.surplus {
-    color: #e74c3c;
+.no-reminders {
+    color: #777;
+    font-style: italic;
+    text-align: center;
+    padding: 1rem;
 }
 
-/* Responsywność */
+/* Utility classes */
+.hidden {
+    display: none !important;
+}
+
+/* Responsive adjustments */
 @media (min-width: 768px) {
-    .container {
-        max-width: 800px;
-    }
-    
-    .current-results {
-        flex-direction: row;
-    }
-    
-    .result-box {
-        flex: 1;
+    .app-container {
+        max-width: 500px;
+        margin: 0 auto;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
     }
 }

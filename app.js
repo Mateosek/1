@@ -1,6 +1,7 @@
 // Main App JavaScript
 document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
+    // DOM Elements
     const sections = document.querySelectorAll('.section');
     const navButtons = document.querySelectorAll('.nav-btn');
     const waterLevel = document.getElementById('water-level');
@@ -42,18 +43,23 @@ document.addEventListener('DOMContentLoaded', () => {
         showSection('dashboard-section');
         scheduleReminders();
         requestNotificationPermission();
+        setupTabsEventListeners();
         
         // Register service worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./service-worker.js')
                 .then(registration => {
                     console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    // Aktualizuj service worker jeśli jest dostępna nowa wersja
+                    registration.update();
                 })
                 .catch(err => {
                     console.log('ServiceWorker registration failed: ', err);
                 });
         }
     }
+    
+
     
     // Load state from localStorage
     function loadState() {
@@ -76,6 +82,41 @@ document.addEventListener('DOMContentLoaded', () => {
     // Save state to localStorage
     function saveState() {
         localStorage.setItem('waterReminderState', JSON.stringify(state));
+    }
+    
+    // Pokaż powiadomienie w aplikacji
+    function showNotification(title, message, type = 'info') {
+        const notificationContainer = document.getElementById('notification') || createNotificationContainer();
+        
+        notificationContainer.className = `notification ${type}`;
+        notificationContainer.innerHTML = `
+            <div class="notification-content">
+                <h3>${title}</h3>
+                <p>${message}</p>
+            </div>
+            <button id="dismiss-notification" class="dismiss-btn">&times;</button>
+        `;
+        
+        notificationContainer.classList.remove('hidden');
+        
+        // Dodaj obsługę przycisku zamknięcia
+        document.getElementById('dismiss-notification').addEventListener('click', () => {
+            notificationContainer.classList.add('hidden');
+        });
+        
+        // Automatycznie ukryj po 5 sekundach
+        setTimeout(() => {
+            notificationContainer.classList.add('hidden');
+        }, 5000);
+    }
+    
+    // Utwórz kontener na powiadomienia, jeśli nie istnieje
+    function createNotificationContainer() {
+        const container = document.createElement('div');
+        container.id = 'notification';
+        container.className = 'notification hidden';
+        document.body.appendChild(container);
+        return container;
     }
     
     // Check if it's a new day and reset tracking if needed
@@ -103,8 +144,60 @@ document.addEventListener('DOMContentLoaded', () => {
         currentAmount.textContent = state.currentAmount;
         goalAmount.textContent = state.dailyGoal;
         
+        // Update goal percentage
+        const goalPercentage = document.getElementById('goal-percentage');
+        if (goalPercentage) {
+            goalPercentage.textContent = Math.round(percentage);
+        }
+        
+        // Update current amount display in progress info
+        const currentAmountDisplay = document.getElementById('current-amount-display');
+        if (currentAmountDisplay) {
+            currentAmountDisplay.textContent = state.currentAmount;
+        }
+        
+        // Update goal amount display in progress info
+        const goalAmountDisplay = document.getElementById('goal-amount-display');
+        if (goalAmountDisplay) {
+            goalAmountDisplay.textContent = state.dailyGoal;
+        }
+        
         // Render entries
         renderEntries();
+        
+        // Render recent entries
+        renderRecentEntries();
+    }
+    
+    // Render recent entries for dashboard
+    function renderRecentEntries() {
+        const recentEntriesList = document.getElementById('recent-entries');
+        if (!recentEntriesList) return;
+        
+        recentEntriesList.innerHTML = '';
+        
+        if (state.entries.length === 0) {
+            recentEntriesList.innerHTML = '<p class="no-entries">Brak wpisów na dziś</p>';
+            return;
+        }
+        
+        // Pokaż tylko 5 ostatnich wpisów
+        const recentEntries = state.entries.slice(0, 5);
+        
+        recentEntries.forEach(entry => {
+            const entryEl = document.createElement('div');
+            entryEl.className = 'entry';
+            
+            const date = new Date(entry.timestamp);
+            const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            entryEl.innerHTML = `
+                <span class="entry-time">${timeStr}</span>
+                <span class="entry-amount">${entry.amount} ml</span>
+            `;
+            
+            recentEntriesList.appendChild(entryEl);
+        });
     }
     
     // Setup event listeners
@@ -115,6 +208,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const sectionId = btn.dataset.section;
                 showSection(sectionId);
                 setActiveNavButton(btn);
+                
+                // Update charts when navigating to stats section
+                if (sectionId === 'stats-section' && window.waterCharts && window.waterCharts.updateCharts) {
+                    window.waterCharts.updateCharts();
+                }
             });
         });
         
@@ -129,6 +227,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 const amount = parseInt(btn.dataset.amount);
                 addWater(amount);
                 waterOptions.classList.add('hidden');
+            });
+        });
+        
+        // Quick add buttons
+        const quickAddBtns = document.querySelectorAll('.quick-add-btn');
+        quickAddBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const amount = parseInt(btn.dataset.amount);
+                addWater(amount);
+                
+                // Dodaj efekt animacji po kliknięciu
+                btn.classList.add('clicked');
+                setTimeout(() => {
+                    btn.classList.remove('clicked');
+                }, 300);
             });
         });
         
@@ -186,6 +299,11 @@ document.addEventListener('DOMContentLoaded', () => {
         state.entries.unshift(entry);
         saveState();
         updateUI();
+        
+        // Update charts if available
+        if (window.waterCharts && window.waterCharts.updateCharts) {
+            window.waterCharts.updateCharts();
+        }
     }
     
     // Render water entries
@@ -197,20 +315,44 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
+        // Grupuj wpisy według daty
+        const entriesByDate = {};
+        
         state.entries.forEach(entry => {
-            const entryEl = document.createElement('div');
-            entryEl.className = 'entry';
-            
             const date = new Date(entry.timestamp);
-            const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const dateStr = date.toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' });
             
-            entryEl.innerHTML = `
-                <span class="entry-time">${timeStr}</span>
-                <span class="entry-amount">${entry.amount} ml</span>
-            `;
+            if (!entriesByDate[dateStr]) {
+                entriesByDate[dateStr] = [];
+            }
             
-            todayEntries.appendChild(entryEl);
+            entriesByDate[dateStr].push(entry);
         });
+        
+        // Wyświetl wpisy pogrupowane według daty
+        for (const dateStr in entriesByDate) {
+            // Dodaj nagłówek z datą
+            const dateHeader = document.createElement('div');
+            dateHeader.className = 'date-header';
+            dateHeader.textContent = dateStr;
+            todayEntries.appendChild(dateHeader);
+            
+            // Dodaj wpisy dla danej daty
+            entriesByDate[dateStr].forEach(entry => {
+                const entryEl = document.createElement('div');
+                entryEl.className = 'entry';
+                
+                const date = new Date(entry.timestamp);
+                const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                entryEl.innerHTML = `
+                    <span class="entry-time">${timeStr}</span>
+                    <span class="entry-amount">${entry.amount} ml</span>
+                `;
+                
+                todayEntries.appendChild(entryEl);
+            });
+        }
     }
     
     // Save settings
@@ -381,6 +523,36 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize app
     init();
+    
+    // Setup tabs event listeners for stats section
+    function setupTabsEventListeners() {
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.dataset.tab;
+                
+                // Set active tab button
+                tabButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Show active tab content
+                tabContents.forEach(content => {
+                    if (content.id === tabId) {
+                        content.classList.add('active');
+                    } else {
+                        content.classList.remove('active');
+                    }
+                });
+                
+                // Update charts when switching to weekly tab
+                if (tabId === 'weekly-tab' && window.waterCharts && window.waterCharts.updateCharts) {
+                    window.waterCharts.updateCharts();
+                }
+            });
+        });
+    }
     
     // Expose functions to global scope for use in other modules
     window.isInActiveHours = isInActiveHours;

@@ -8,6 +8,7 @@
     <link rel="manifest" href="manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -39,19 +40,95 @@
 
             <section id="dashboard-section" class="section">
                 <h2>Dzisiejszy postęp</h2>
+                
+                <!-- Podsumowanie dziennego spożycia -->
+                <div class="dashboard-summary">
+                    <div class="summary-card">
+                        <div class="summary-icon">
+                            <i class="fas fa-tint"></i>
+                        </div>
+                        <div class="summary-content">
+                            <h3>Spożycie dzisiaj</h3>
+                            <div class="summary-value">
+                                <span id="current-amount">0</span> ml
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="summary-card">
+                        <div class="summary-icon">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                        <div class="summary-content">
+                            <h3>Cel dzienny</h3>
+                            <div class="summary-value">
+                                <span id="goal-amount">2000</span> ml
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="summary-card">
+                        <div class="summary-icon">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                        <div class="summary-content">
+                            <h3>Realizacja celu</h3>
+                            <div class="summary-value">
+                                <span id="goal-percentage">0</span>%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Wizualizacja postępu -->
                 <div class="water-progress">
                     <div class="water-container">
                         <div class="water-level" id="water-level"></div>
                     </div>
                     <div class="progress-info">
-                        <span id="current-amount">0</span> / <span id="goal-amount">2000</span> ml
+                        <span id="current-amount-display">0</span> / <span id="goal-amount-display">2000</span> ml
                     </div>
                 </div>
+                
+                <!-- Szybkie przyciski -->
+                <div class="quick-add-section">
+                    <h3>Szybkie dodawanie</h3>
+                    <div class="quick-add-buttons">
+                        <button class="quick-add-btn" data-amount="100">
+                            <i class="fas fa-tint"></i>
+                            <span>100 ml</span>
+                        </button>
+                        <button class="quick-add-btn" data-amount="200">
+                            <i class="fas fa-tint"></i>
+                            <span>200 ml</span>
+                        </button>
+                        <button class="quick-add-btn" data-amount="330">
+                            <i class="fas fa-tint"></i>
+                            <span>330 ml</span>
+                        </button>
+                        <button class="quick-add-btn" data-amount="500">
+                            <i class="fas fa-tint"></i>
+                            <span>500 ml</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Ostatnie aktywności -->
+                <div class="recent-activities">
+                    <h3>Ostatnie aktywności</h3>
+                    <div id="recent-entries" class="recent-entries-list">
+                        <!-- Ostatnie wpisy będą dodawane dynamicznie -->
+                    </div>
+                </div>
+                
+                <!-- Przycisk dodawania wody -->
                 <div class="action-buttons">
                     <button id="add-water" class="btn primary">
                         <i class="fas fa-plus"></i> Dodaj wodę
                     </button>
                 </div>
+                
+                <!-- Opcje dodawania wody -->
                 <div id="water-options" class="water-options hidden">
                     <button class="water-option" data-amount="100">100 ml</button>
                     <button class="water-option" data-amount="200">200 ml</button>
@@ -72,9 +149,37 @@
                 </div>
             </section>
 
+            <section id="stats-section" class="section">
+                <h2>Statystyki</h2>
+                
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="weekly-tab">Tygodniowe</button>
+                    <button class="tab-btn" data-tab="monthly-tab">Miesięczne</button>
+                </div>
+                
+                <div id="weekly-tab" class="tab-content active">
+                    <div class="chart-container">
+                        <canvas id="weekly-chart"></canvas>
+                    </div>
+                    <p class="chart-info">Wykres przedstawia ilość wypitej wody w ciągu ostatnich 7 dni.</p>
+                </div>
+                
+                <div id="monthly-tab" class="tab-content">
+                    <div id="monthly-stats" class="stats-grid">
+                        <!-- Monthly stats will be added dynamically -->
+                    </div>
+                </div>
+                
+                <div class="export-section">
+                    <button id="export-data" class="btn primary">
+                        <i class="fas fa-download"></i> Eksportuj dane
+                    </button>
+                </div>
+            </section>
+
             <section id="custom-reminder-section" class="section">
                 <h2>Niestandardowe przypomnienia</h2>
-                <p>Ustaw własne godziny przypomnień o piciu wody:</p>
+                <p>Ustaw własne godziny przypomnień:</p>
                 
                 <div id="reminders-list" class="reminders-list">
                     <!-- Reminders will be added dynamically -->
@@ -88,6 +193,22 @@
                     <div class="form-group">
                         <label for="reminder-time">Godzina przypomnienia:</label>
                         <input type="time" id="reminder-time">
+                    </div>
+                    <div class="form-group">
+                        <label>Dni tygodnia:</label>
+                        <div class="weekday-selector">
+                            <label class="weekday-label"><input type="checkbox" class="weekday-checkbox" value="0"> Nd</label>
+                            <label class="weekday-label"><input type="checkbox" class="weekday-checkbox" value="1"> Pn</label>
+                            <label class="weekday-label"><input type="checkbox" class="weekday-checkbox" value="2"> Wt</label>
+                            <label class="weekday-label"><input type="checkbox" class="weekday-checkbox" value="3"> Śr</label>
+                            <label class="weekday-label"><input type="checkbox" class="weekday-checkbox" value="4"> Cz</label>
+                            <label class="weekday-label"><input type="checkbox" class="weekday-checkbox" value="5"> Pt</label>
+                            <label class="weekday-label"><input type="checkbox" class="weekday-checkbox" value="6"> Sb</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="reminder-note">Notatka (opcjonalnie):</label>
+                        <textarea id="reminder-note" placeholder="Wpisz treść notatki..."></textarea>
                     </div>
                     <div class="form-actions">
                         <button id="save-reminder-btn" class="btn primary">Zapisz</button>
@@ -110,6 +231,10 @@
                 <i class="fas fa-history"></i>
                 <span>Historia</span>
             </button>
+            <button class="nav-btn" data-section="stats-section">
+                <i class="fas fa-chart-bar"></i>
+                <span>Statystyki</span>
+            </button>
             <button class="nav-btn" data-section="custom-reminder-section">
                 <i class="fas fa-bell"></i>
                 <span>Przypomnienia</span>
@@ -127,5 +252,6 @@
 
     <script src="app.js"></script>
     <script src="custom-reminders.js"></script>
+    <script src="charts.js"></script>
 </body>
 </html>

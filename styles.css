@@ -25,7 +25,13 @@ header {
     padding: 1rem;
     text-align: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
+
+
 
 main {
     flex: 1;
@@ -96,6 +102,52 @@ input[type="time"] {
     background-color: #3a80d2;
 }
 
+/* Dashboard summary styles */
+.dashboard-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.summary-card {
+    background-color: #f5f7fa;
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.summary-icon {
+    width: 40px;
+    height: 40px;
+    background-color: #e3f2fd;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 1rem;
+}
+
+.summary-icon i {
+    color: #4a90e2;
+    font-size: 1.2rem;
+}
+
+.summary-content h3 {
+    font-size: 0.9rem;
+    color: #777;
+    margin: 0 0 0.3rem 0;
+    font-weight: normal;
+}
+
+.summary-value {
+    font-size: 1.4rem;
+    font-weight: 500;
+    color: #333;
+}
+
 /* Water progress styles */
 .water-progress {
     text-align: center;
@@ -127,6 +179,76 @@ input[type="time"] {
     font-size: 1.2rem;
     font-weight: 500;
     color: #4a90e2;
+}
+
+/* Quick add section */
+.quick-add-section {
+    margin: 2rem 0;
+}
+
+.quick-add-section h3 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.quick-add-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.8rem;
+}
+
+.quick-add-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #e3f2fd;
+    border: none;
+    border-radius: 8px;
+    padding: 1rem 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.quick-add-btn:hover {
+    background-color: #bbdefb;
+}
+
+.quick-add-btn.clicked {
+    transform: scale(0.95);
+    background-color: #bbdefb;
+}
+
+.quick-add-btn i {
+    color: #4a90e2;
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.quick-add-btn span {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #4a90e2;
+}
+
+/* Recent activities */
+.recent-activities {
+    margin: 2rem 0;
+}
+
+.recent-activities h3 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.recent-entries-list {
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: #f5f7fa;
+    border-radius: 8px;
+    padding: 0.5rem;
 }
 
 /* Water options */
@@ -173,8 +295,18 @@ input[type="time"] {
 
 /* History section */
 .entries-list {
-    max-height: 300px;
+    max-height: 400px;
     overflow-y: auto;
+}
+
+.date-header {
+    background-color: #f0f7ff;
+    color: #4a90e2;
+    font-weight: 500;
+    padding: 0.6rem 0.8rem;
+    border-radius: 4px 4px 0 0;
+    margin-top: 1rem;
+    border-bottom: 2px solid #4a90e2;
 }
 
 .entry {
@@ -193,6 +325,75 @@ input[type="time"] {
 .entry-amount {
     font-weight: 500;
     color: #4a90e2;
+}
+
+/* Notification styles */
+.notification {
+    position: fixed;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 400px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+.notification.hidden {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-50%) translateY(-20px);
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+}
+
+.notification p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.notification.info {
+    border-left: 4px solid #4a90e2;
+}
+
+.notification.success {
+    border-left: 4px solid #4CAF50;
+}
+
+.notification.warning {
+    border-left: 4px solid #FF9800;
+}
+
+.notification.error {
+    border-left: 4px solid #F44336;
+}
+
+.dismiss-btn {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: #999;
+    cursor: pointer;
+    padding: 0.3rem;
+    margin-left: 0.5rem;
+}
+
+.dismiss-btn:hover {
+    color: #333;
 }
 
 /* Navigation */
@@ -268,52 +469,220 @@ nav {
     cursor: pointer;
 }
 
-/* Custom Reminders */
+/* Reminder styles */
 .reminders-list {
-    margin-top: 1rem;
+    margin-top: 20px;
 }
 
 .reminder-item {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 0.8rem;
-    border-bottom: 1px solid #eee;
+    justify-content: space-between;
+    padding: 15px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    flex-wrap: wrap;
 }
 
 .reminder-time {
+    font-size: 1.2rem;
     font-weight: 500;
-    color: #4a90e2;
+    margin-right: 10px;
+}
+
+.reminder-note {
+    color: #666;
+    margin-top: 5px;
+    font-size: 0.9rem;
+    width: 100%;
+}
+
+.reminder-days {
+    display: flex;
+    gap: 5px;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.day-indicator {
+    display: inline-block;
+    width: 25px;
+    height: 25px;
+    line-height: 25px;
+    text-align: center;
+    border-radius: 50%;
+    background-color: #e0e0e0;
+    color: #888;
+    font-size: 0.8rem;
+}
+
+.day-indicator.active {
+    background-color: #4caf50;
+    color: white;
 }
 
 .delete-reminder {
     background: none;
     border: none;
-    color: #e74c3c;
+    color: #ff5252;
     cursor: pointer;
-    padding: 0.5rem;
+    font-size: 1.2rem;
 }
 
 .reminder-form {
-    margin-top: 1rem;
+    background-color: #f5f5f5;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.weekday-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.weekday-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    padding: 5px 10px;
+    background-color: #e0e0e0;
+    border-radius: 15px;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+.weekday-label:hover {
+    background-color: #d0d0d0;
+}
+
+.weekday-checkbox {
+    margin: 0;
+}
+
+.weekday-checkbox:checked + .weekday-label {
+    background-color: #4caf50;
+    color: white;
 }
 
 .form-actions {
     display: flex;
-    gap: 0.8rem;
-    margin-top: 1rem;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
 }
 
 .no-reminders {
-    color: #777;
-    font-style: italic;
     text-align: center;
-    padding: 1rem;
+    color: #888;
+    margin-top: 20px;
 }
 
 /* Utility classes */
 .hidden {
     display: none !important;
+}
+
+/* Stats section styles */
+.chart-container {
+    height: 300px;
+    margin: 1rem 0;
+    position: relative;
+}
+
+.chart-info {
+    text-align: center;
+    color: #777;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+.tabs {
+    display: flex;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 1.5rem;
+}
+
+.tab-btn {
+    padding: 0.8rem 1.5rem;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #777;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.tab-btn.active {
+    color: #4a90e2;
+    border-bottom-color: #4a90e2;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.stat-item {
+    background-color: #f5f7fa;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #4a90e2;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #777;
+}
+
+.stat-comparison {
+    font-size: 0.8rem;
+    margin-top: 0.3rem;
+    color: #777;
+}
+
+.change-positive {
+    color: #4CAF50;
+    font-weight: 500;
+}
+
+.change-negative {
+    color: #F44336;
+    font-weight: 500;
+}
+
+.change-neutral {
+    color: #777;
+    font-weight: 500;
+}
+
+.export-section {
+    margin-top: 2rem;
+    text-align: center;
 }
 
 /* Responsive adjustments */
@@ -323,4 +692,21 @@ nav {
         margin: 0 auto;
         box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
     }
+}
+
+.reminder-form textarea {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    min-height: 80px;
+    resize: vertical;
+}
+
+.reminder-note {
+    font-size: 0.9rem;
+    color: #666;
+    margin: 0.3rem 0;
+    font-style: italic;
 }

@@ -638,6 +638,55 @@ nav {
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 1rem;
     margin: 1.5rem 0;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.weekly-averages {
+    margin: 2rem 0;
+    background-color: #f5f7fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.weekly-averages h3 {
+    font-size: 1.2rem;
+    color: #4a90e2;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.weekly-averages-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+}
+
+.week-item {
+    background-color: white;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.week-header {
+    font-weight: 500;
+    color: #777;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.week-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #4a90e2;
+    margin-bottom: 0.3rem;
+}
+
+.week-info {
+    font-size: 0.8rem;
+    color: #777;
 }
 
 .stat-item {
